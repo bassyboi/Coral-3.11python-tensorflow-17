@@ -54,8 +54,8 @@ jobs:
         bazel clean --expunge  
         # Run Bazel to download all dependencies without building
         bazel fetch //tflite/public:libedgetpu_direct_all.so.stripped
-        # Find and patch all instances of the BUILD.bazel file for XNNPACK
-        find . -type f -name "BUILD.bazel" -exec sed -i 's/-mavx512fp16/-mavx512bf16/g' {} +
+        # Find and patch all instances of the unsupported flag in the Bazel build files
+        grep -rl --include=\*.bazel '-mavx512fp16' . | xargs sed -i 's/-mavx512fp16/-mavx512bf16/g'
         # Build libedgetpu with patched XNNPACK configuration
         bazel build --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
         sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
