@@ -1,4 +1,4 @@
-name: Build Coral Edge TPU Components with TensorFlow 2.17.0 and NumPy 2.0
+name: Build Coral Edge TPU Components with TensorFlow 2.17.0 and NumPy
 
 on:
   push:
@@ -57,8 +57,11 @@ jobs:
         cd libedgetpu
         bazel clean --expunge  
         bazel fetch //tflite/public:libedgetpu_direct_all.so.stripped
+        # Find and patch all instances of the unsupported flag in all Bazel files
         find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-mavx512fp16/-mavx512bf16/g' {} +
+        # Verify replacements
         grep -r -l "-mavx512fp16" . || echo "All replacements done successfully."
+        # Build libedgetpu with patched XNNPACK configuration
         bazel build --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
         sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
