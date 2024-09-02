@@ -46,12 +46,17 @@ jobs:
       run: |
         python3.11 -m pip install pandas matplotlib scipy scikit-learn
 
-    - name: Patch XNNPACK Build File to Remove Unsupported Flag
+    - name: Build libedgetpu with XNNPACK Patch
       run: |
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        sed -i 's/-mavx512fp16/-mavx512f/g' external/XNNPACK/BUILD.bazel  # Replace unsupported flag with a similar one
-        bazel clean --expunge  # Clean Bazel cache
+        # Clean Bazel cache
+        bazel clean --expunge  
+        # Run Bazel to download all dependencies without building
+        bazel fetch //tflite/public:libedgetpu_direct_all.so.stripped
+        # Find and patch the BUILD.bazel file for XNNPACK
+        find . -type f -path "*/XNNPACK/BUILD.bazel" -exec sed -i 's/-mavx512fp16/-mavx512f/g' {} +
+        # Build libedgetpu with patched XNNPACK configuration
         bazel build --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
         sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
