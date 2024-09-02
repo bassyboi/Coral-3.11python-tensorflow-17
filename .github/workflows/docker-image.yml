@@ -46,9 +46,9 @@ jobs:
       run: |
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        # Removed 'git checkout main' because it caused an error
-        make
-        sudo cp out/direct/k8/* /usr/lib/x86_64-linux-gnu/
+        bazel clean --expunge  # Clean Bazel cache
+        bazel build --cxxopt='-std=c++17' --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
+        sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
 
     - name: Build TensorFlow Lite Runtime with TensorFlow 2.17.0
