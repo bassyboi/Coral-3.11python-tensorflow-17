@@ -39,10 +39,11 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
 
-    - name: Install TensorFlow 2.17.0 and NumPy 2.0
+    - name: Install TensorFlow 2.17.0 and Compatible NumPy Version
       run: |
         source venv/bin/activate
-        python -m pip install tensorflow==2.17.0 numpy==2.0.0
+        python -m pip install tensorflow==2.17.0
+        python -m pip install "numpy>=1.23.5,<2.0.0"
 
     - name: Install Additional Dependencies (Pandas, Matplotlib, SciPy, etc.)
       run: |
