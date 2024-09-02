@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3  # Updated to v3 for node16 compatibility
+      uses: actions/checkout@v4  # Updated to v4 for node20 compatibility
 
     - name: Install dependencies
       run: |
@@ -29,7 +29,7 @@ jobs:
         sudo apt-get update && sudo apt-get install -y bazel
 
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5  # Updated to v5 for node20 compatibility
       with:
         python-version: '3.11'
 
