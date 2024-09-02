@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Updated to v3 for node16 compatibility
 
     - name: Install dependencies
       run: |
@@ -46,8 +46,7 @@ jobs:
       run: |
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        # Use the latest compatible commit for TensorFlow 2.17.0
-        git checkout main  # Specify a specific commit if needed
+        # Removed 'git checkout main' because it caused an error
         make
         sudo cp out/direct/k8/* /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
