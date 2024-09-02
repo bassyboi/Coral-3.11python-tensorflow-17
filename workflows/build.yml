@@ -1,0 +1,71 @@
+name: Build Coral Edge TPU Components with TensorFlow 2.17.0 and NumPy 2.0
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y build-essential cmake git wget python3.11 python3.11-dev python3.11-venv python3-pip bazel
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install TensorFlow 2.17.0 and NumPy 2.0
+      run: |
+        python3.11 -m pip install tensorflow==2.17.0
+        python3.11 -m pip install numpy==2.0.0
+
+    - name: Install Additional Dependencies (Pandas, Matplotlib, SciPy, etc.)
+      run: |
+        python3.11 -m pip install pandas matplotlib scipy scikit-learn
+
+    - name: Build libedgetpu
+      run: |
+        git clone https://github.com/google-coral/libedgetpu.git
+        cd libedgetpu
+        # Use the latest compatible commit for TensorFlow 2.17.0
+        git checkout main  # Specify a specific commit if needed
+        make
+        sudo cp out/direct/k8/* /usr/lib/x86_64-linux-gnu/
+        sudo ldconfig
+
+    - name: Build TensorFlow Lite Runtime with TensorFlow 2.17.0
+      run: |
+        git clone https://github.com/tensorflow/tensorflow.git
+        cd tensorflow
+        git checkout v2.17.0  # Ensure matching TensorFlow version
+        ./tensorflow/lite/tools/pip_package/build_pip_package_with_bazel.sh
+        python3.11 -m pip install tensorflow/lite/tools/pip_package/gen/tflite_pip/python3/dist/tflite_runtime-*.whl
+
+    - name: Build PyCoral with TensorFlow 2.17.0
+      run: |
+        git clone --recurse-submodules https://github.com/google-coral/pycoral --depth 1
+        cd pycoral
+        # Ensure the build script uses TensorFlow 2.17.0
+        sudo bash scripts/build.sh
+        make wheel
+        python3.11 -m pip install $(ls dist/*.whl)
+
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coral-build-artifacts
+        path: |
+          libedgetpu/out/direct/k8/*
+          tensorflow/lite/tools/pip_package/gen/tflite_pip/python3/dist/*
+          pycoral/dist/*.whl
