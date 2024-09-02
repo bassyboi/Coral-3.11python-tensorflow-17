@@ -18,7 +18,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update && sudo apt-get install -y build-essential cmake git wget python3.11 python3.11-dev python3.11-venv python3-pip bazel
+        sudo apt-get update && sudo apt-get install -y build-essential cmake git wget python3.11 python3.11-dev python3.11-venv python3-pip
+
+    - name: Install Bazel
+      run: |
+        sudo apt-get install -y apt-transport-https curl gnupg
+        curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg
+        sudo mv bazel-archive-keyring.gpg /usr/share/keyrings
+        echo "deb [signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+        sudo apt-get update && sudo apt-get install -y bazel
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
