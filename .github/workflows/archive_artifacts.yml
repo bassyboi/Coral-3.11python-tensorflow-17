@@ -26,7 +26,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: 'v1.0.0'  # Use the appropriate version
+        tag_name: 'v1.0.0'
         release_name: 'v1.0.0 Release'
         draft: false
         prerelease: false
@@ -37,12 +37,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so  # Ensure correct file path
+        asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so
         asset_name: libedgetpu_direct_all.so
         asset_content_type: application/octet-stream
 
   archive_tflite_runtime:
     runs-on: ubuntu-latest
+    needs: archive_libedgetpu
 
     steps:
     - name: Checkout code
@@ -59,13 +60,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.archive_libedgetpu.outputs.upload_url }}
-        asset_path: artifacts/tflite_runtime/tflite_runtime-*.whl  # Ensure correct file path
-        asset_name: tflite_runtime-2.17.0.whl  # Match actual file name
+        upload_url: ${{ needs.archive_libedgetpu.steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/tflite_runtime/tflite_runtime-2.17.0.whl
+        asset_name: tflite_runtime-2.17.0.whl
         asset_content_type: application/octet-stream
 
   archive_pycoral:
     runs-on: ubuntu-latest
+    needs: archive_tflite_runtime
 
     steps:
     - name: Checkout code
@@ -82,7 +84,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.archive_libedgetpu.outputs.upload_url }}
-        asset_path: artifacts/pycoral/pycoral-*.whl  # Ensure correct file path
-        asset_name: pycoral-1.0.0.whl  # Match actual file name
+        upload_url: ${{ needs.archive_tflite_runtime.steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/pycoral/pycoral-1.0.0.whl
+        asset_name: pycoral-1.0.0.whl
         asset_content_type: application/octet-stream
