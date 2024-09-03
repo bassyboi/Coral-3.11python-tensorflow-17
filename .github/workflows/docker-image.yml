@@ -55,8 +55,15 @@ jobs:
         source venv/bin/activate
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        # Use the TensorFlow version-specific commit that matches TensorFlow 2.17.0 for compatibility
-        sed -i 's/tensorflow_commit =.*/tensorflow_commit = "tensorflow/v2.17.0"/g' WORKSPACE.bzl
+        # Display the content of WORKSPACE.bzl before modification for debugging
+        echo "Before modification:"
+        cat WORKSPACE.bzl
+        # Correct sed command to update TensorFlow commit in WORKSPACE.bzl
+        sed -i 's/tensorflow_commit = .*/tensorflow_commit = "tensorflow\/v2.17.0"/g' WORKSPACE.bzl
+        # Display the content of WORKSPACE.bzl after modification to verify changes
+        echo "After modification:"
+        cat WORKSPACE.bzl
+        # Clean and build libedgetpu with the correct TensorFlow commit
         bazel clean --expunge  
         bazel fetch //tflite/public:libedgetpu_direct_all.so.stripped
         # Find and patch all instances of the unsupported flag in all Bazel files
