@@ -34,7 +34,7 @@ jobs:
     - name: Upload Release Asset - libedgetpu
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so
@@ -58,7 +58,7 @@ jobs:
     - name: Upload Release Asset - TensorFlow Lite Runtime
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
       with:
         upload_url: ${{ needs.archive_libedgetpu.steps.create_release.outputs.upload_url }}
         asset_path: artifacts/tflite_runtime/tflite_runtime-2.17.0.whl
@@ -82,7 +82,7 @@ jobs:
     - name: Upload Release Asset - PyCoral
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
       with:
         upload_url: ${{ needs.archive_tflite_runtime.steps.create_release.outputs.upload_url }}
         asset_path: artifacts/pycoral/pycoral-1.0.0.whl
