@@ -34,9 +34,9 @@ jobs:
         git clone https://github.com/tensorflow/tensorflow.git
         cd tensorflow
         git checkout v2.17.0
-        # Patch unsupported flags in Bazel files
+        # Replace unsupported compiler flags in Bazel build files
         find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-mavx512fp16/-mavx512bf16/g' {} +
-        # Clean Bazel cache
+        # Clean Bazel cache to avoid conflicts with previous builds
         bazel clean --expunge
 
     - name: Build TensorFlow Lite Runtime
