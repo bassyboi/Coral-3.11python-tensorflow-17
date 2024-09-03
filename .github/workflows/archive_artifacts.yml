@@ -1,0 +1,74 @@
+name: Archive Build Artifacts and Create Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  archive_artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts - libedgetpu
+      uses: actions/download-artifact@v3
+      with:
+        name: libedgetpu-build-artifact
+        path: artifacts/libedgetpu
+
+    - name: Download Artifacts - TensorFlow Lite Runtime
+      uses: actions/download-artifact@v3
+      with:
+        name: tflite-runtime-build-artifact
+        path: artifacts/tflite_runtime
+
+    - name: Download Artifacts - PyCoral
+      uses: actions/download-artifact@v3
+      with:
+        name: pycoral-build-artifact
+        path: artifacts/pycoral
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: 'v1.0.0'  # Update the version as needed
+        release_name: 'v1.0.0 Release'
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset - libedgetpu
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so  # Update with the actual file path
+        asset_name: libedgetpu_direct_all.so
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset - TensorFlow Lite Runtime
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/tflite_runtime/tflite_runtime-*.whl  # Update with the actual file path
+        asset_name: tflite_runtime-2.17.0.whl  # Ensure this matches your actual wheel file name
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset - PyCoral
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/pycoral/pycoral-*.whl  # Update with the actual file path
+        asset_name: pycoral-1.0.0.whl  # Ensure this matches your actual wheel file name
+        asset_content_type: application/octet-stream
