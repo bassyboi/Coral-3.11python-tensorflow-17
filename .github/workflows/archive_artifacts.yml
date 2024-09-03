@@ -7,38 +7,26 @@ on:
       - main
 
 jobs:
-  archive_artifacts:
+  archive_libedgetpu:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Download Artifacts - libedgetpu
+    - name: Download and Archive Artifacts - libedgetpu
       uses: actions/download-artifact@v3
       with:
         name: libedgetpu-build-artifact
         path: artifacts/libedgetpu
 
-    - name: Download Artifacts - TensorFlow Lite Runtime
-      uses: actions/download-artifact@v3
-      with:
-        name: tflite-runtime-build-artifact
-        path: artifacts/tflite_runtime
-
-    - name: Download Artifacts - PyCoral
-      uses: actions/download-artifact@v3
-      with:
-        name: pycoral-build-artifact
-        path: artifacts/pycoral
-
-    - name: Create GitHub Release
+    - name: Create GitHub Release if not exists
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: 'v1.0.0'  # Update the version as needed
+        tag_name: 'v1.0.0'  # Use the appropriate version
         release_name: 'v1.0.0 Release'
         draft: false
         prerelease: false
@@ -49,26 +37,52 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so  # Update with the actual file path
+        asset_path: artifacts/libedgetpu/libedgetpu_direct_all.so  # Ensure correct file path
         asset_name: libedgetpu_direct_all.so
         asset_content_type: application/octet-stream
+
+  archive_tflite_runtime:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download and Archive Artifacts - TensorFlow Lite Runtime
+      uses: actions/download-artifact@v3
+      with:
+        name: tflite-runtime-build-artifact
+        path: artifacts/tflite_runtime
 
     - name: Upload Release Asset - TensorFlow Lite Runtime
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/tflite_runtime/tflite_runtime-*.whl  # Update with the actual file path
-        asset_name: tflite_runtime-2.17.0.whl  # Ensure this matches your actual wheel file name
+        upload_url: ${{ steps.archive_libedgetpu.outputs.upload_url }}
+        asset_path: artifacts/tflite_runtime/tflite_runtime-*.whl  # Ensure correct file path
+        asset_name: tflite_runtime-2.17.0.whl  # Match actual file name
         asset_content_type: application/octet-stream
+
+  archive_pycoral:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download and Archive Artifacts - PyCoral
+      uses: actions/download-artifact@v3
+      with:
+        name: pycoral-build-artifact
+        path: artifacts/pycoral
 
     - name: Upload Release Asset - PyCoral
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifacts/pycoral/pycoral-*.whl  # Update with the actual file path
-        asset_name: pycoral-1.0.0.whl  # Ensure this matches your actual wheel file name
+        upload_url: ${{ steps.archive_libedgetpu.outputs.upload_url }}
+        asset_path: artifacts/pycoral/pycoral-*.whl  # Ensure correct file path
+        asset_name: pycoral-1.0.0.whl  # Match actual file name
         asset_content_type: application/octet-stream
