@@ -25,14 +25,24 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
 
-    - name: Clone and Build libedgetpu
+    - name: Install Additional Dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y build-essential cmake git wget libusb-1.0-0-dev libssl-dev
+
+    - name: Clone and Prepare libedgetpu
       run: |
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        # Patch unsupported flags
-        find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-mavx512fp16/-mavx512bf16/g' {} +
-        # Build libedgetpu
-        bazel build --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
+        # Fix conflicting compiler flags
+        find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-std=c++14//g' {} +
+        # Clean Bazel cache
+        bazel clean --expunge
+
+    - name: Build libedgetpu
+      run: |
+        cd libedgetpu
+        # Adjust Bazel build strategy
+        bazel build --spawn_strategy=local --jobs=1 --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
         sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
 
