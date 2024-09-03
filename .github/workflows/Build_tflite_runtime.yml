@@ -14,20 +14,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python environment
+    - name: Set up Python 3.11 environment
+      uses: actions/setup-python@v5  # Ensures Python 3.11 is installed
+      with:
+        python-version: '3.11'
+
+    - name: Set up Python virtual environment
       run: |
-        python3.11 -m venv venv
+        python -m venv venv  # Use 'python' since setup-python configures the correct version
         source venv/bin/activate
         python -m pip install --upgrade pip
 
-    - name: Clone and Build TensorFlow Lite Runtime
+    - name: Install Additional Dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y build-essential cmake git wget libusb-1.0-0-dev libssl-dev
+
+    - name: Clone TensorFlow Repository
       run: |
         git clone https://github.com/tensorflow/tensorflow.git
         cd tensorflow
         git checkout v2.17.0
-        # Patch unsupported flags
-        find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-mavx512fp16/-mavx512bf16/g' {} +
-        # Build TensorFlow Lite Runtime
+        # Patch any unsupported compiler flags if needed
+        find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-std=c++14//g' {} +
+        # Clean Bazel cache
+        bazel clean --expunge
+
+    - name: Build TensorFlow Lite Runtime
+      run: |
+        cd tensorflow
+        # Build TensorFlow Lite Runtime using Bazel
         ./tensorflow/lite/tools/pip_package/build_pip_package_with_bazel.sh
         python -m pip install tensorflow/lite/tools/pip_package/gen/tflite_pip/python3/dist/tflite_runtime-*.whl
 
