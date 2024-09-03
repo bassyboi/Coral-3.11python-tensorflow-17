@@ -1,4 +1,4 @@
-name: Build PyCoral
+name: Build and Upload PyCoral Artifact
 
 on:
   workflow_dispatch:
@@ -7,15 +7,15 @@ on:
       - main
 
 jobs:
-  build_pycoral:
+  build_and_upload:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.11 environment
-      uses: actions/setup-python@v5  # Ensures Python 3.11 is installed
+    - name: Set up Python environment
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -25,28 +25,33 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
 
-    - name: Install Additional Dependencies
+    - name: Install Dependencies
       run: |
         sudo apt-get update && sudo apt-get install -y build-essential cmake git wget libusb-1.0-0-dev libssl-dev
 
-    - name: Clone and Prepare PyCoral
+    - name: Install Python Dependencies
       run: |
-        git clone --recurse-submodules https://github.com/google-coral/pycoral --depth 1
-        cd pycoral
-        # Patch any unsupported compiler flags if needed
-        find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-std=c++14//g' {} +
-        # Clean Bazel cache
-        bazel clean --expunge
+        source venv/bin/activate
+        pip install numpy tensorflow
+
+    - name: Debug Build Environment
+      run: |
+        source venv/bin/activate
+        python -m pip list
+        gcc --version
+        # Add more debug commands if needed
 
     - name: Build PyCoral
       run: |
+        set -x  # Enable debug mode to print commands
+        source venv/bin/activate
+        git clone --recurse-submodules https://github.com/google-coral/pycoral --depth 1
         cd pycoral
-        # Build PyCoral using Bazel
-        sudo bash scripts/build.sh  # Ensures the script has the right permissions
-        make wheel  # Build the Python wheel for PyCoral
-        python -m pip install $(ls dist/*.whl)  # Install the wheel to verify
+        sudo bash scripts/build.sh
+        make wheel
+        python -m pip install $(ls dist/*.whl)
 
-    - name: Upload PyCoral artifact
+    - name: Upload PyCoral Artifact
       uses: actions/upload-artifact@v3
       with:
         name: pycoral-build-artifact
