@@ -22,8 +22,7 @@ jobs:
     - name: Set up Python virtual environment
       run: |
         python -m venv venv
-        source venv/bin/activate
-        python -m pip install --upgrade pip
+        venv/bin/python -m pip install --upgrade pip
 
     - name: Install Dependencies
       run: |
@@ -31,25 +30,22 @@ jobs:
 
     - name: Install Python Dependencies
       run: |
-        source venv/bin/activate
-        pip install numpy tensorflow
+        venv/bin/pip install numpy tensorflow  # Install directly using venv's pip
 
     - name: Debug Build Environment
       run: |
-        source venv/bin/activate
-        python -m pip list
-        gcc --version
-        # Add more debug commands if needed
+        venv/bin/pip list  # List installed Python packages
+        gcc --version  # Show GCC version
+        cmake --version  # Show CMake version
 
     - name: Build PyCoral
       run: |
         set -x  # Enable debug mode to print commands
-        source venv/bin/activate
         git clone --recurse-submodules https://github.com/google-coral/pycoral --depth 1
         cd pycoral
-        sudo bash scripts/build.sh
+        bash scripts/build.sh  # No need for sudo; run build script directly
         make wheel
-        python -m pip install $(ls dist/*.whl)
+        venv/bin/pip install $(ls dist/*.whl)  # Install using venv's pip
 
     - name: Upload PyCoral Artifact
       uses: actions/upload-artifact@v3
