@@ -33,15 +33,15 @@ jobs:
       run: |
         git clone https://github.com/google-coral/libedgetpu.git
         cd libedgetpu
-        # Fix conflicting compiler flags
+        # Remove conflicting compiler flags
         find . -type f \( -name "BUILD.bazel" -o -name "*.bzl" -o -name "*.c" \) -exec sed -i 's/-std=c++14//g' {} +
-        # Clean Bazel cache
+        # Clean Bazel cache to prevent issues from previous builds
         bazel clean --expunge
 
     - name: Build libedgetpu
       run: |
         cd libedgetpu
-        # Adjust Bazel build strategy
+        # Use specific Bazel strategies to avoid sandbox issues and specify C++17 only
         bazel build --spawn_strategy=local --jobs=1 --cxxopt='-std=c++17' --sandbox_debug --verbose_failures //tflite/public:libedgetpu_direct_all.so.stripped
         sudo cp bazel-bin/tflite/public/libedgetpu_direct_all.so /usr/lib/x86_64-linux-gnu/
         sudo ldconfig
