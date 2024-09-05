@@ -60,7 +60,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
       with:
-        upload_url: ${{ needs.archive_libedgetpu.steps.create_release.outputs.upload_url }}
+        # Correct reference to the output of the previous job's step
+        upload_url: ${{ needs.archive_libedgetpu.outputs.create_release.outputs.upload_url }}
         asset_path: artifacts/tflite_runtime/tflite_runtime-2.17.0.whl
         asset_name: tflite_runtime-2.17.0.whl
         asset_content_type: application/octet-stream
@@ -84,7 +85,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
       with:
-        upload_url: ${{ needs.archive_tflite_runtime.steps.create_release.outputs.upload_url }}
+        # Correct reference to the output of the previous job's step
+        upload_url: ${{ needs.archive_tflite_runtime.outputs.create_release.outputs.upload_url }}
         asset_path: artifacts/pycoral/pycoral-1.0.0.whl
         asset_name: pycoral-1.0.0.whl
         asset_content_type: application/octet-stream
